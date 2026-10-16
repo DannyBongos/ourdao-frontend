@@ -54,6 +54,12 @@ describe('formatToken — integer string inputs', () => {
     // 12345670 stroops at 7 decimals = 1.234567 → show only 2 → 1.23
     expect(formatToken('12345670', { displayDecimals: 2 })).toBe('1.23')
   })
+
+  it('appends symbol when provided', () => {
+    expect(formatToken('10000000', { symbol: 'USDC' })).toBe('1 USDC')
+    expect(formatToken('15000000', { symbol: 'XLM' })).toBe('1.5 XLM')
+    expect(formatToken('1', { symbol: 'USDC' })).toBe('<0.0001 USDC')
+  })
 })
 
 // ---------------------------------------------------------------------------

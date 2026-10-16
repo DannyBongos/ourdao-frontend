@@ -1,42 +1,17 @@
-'use client'
-
 import Link from 'next/link'
 import {
-  ShieldCheckIcon,
   LockClosedIcon,
   EyeSlashIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
 } from '@/lib/icons'
-import { useUserData, useTreasuryProposals } from '@/hooks/useDAO'
-import { LoadError } from '@/components/LoadError'
 import { PageHeader } from '@/components/PageHeader'
+import { PrivacyWalletGate } from '@/components/privacy/PrivacyWalletGate'
+import { PrivacyStats } from '@/components/privacy/PrivacyStats'
 
 export default function PrivacyPage() {
-  const userData = useUserData()
-  const { proposals, isLoading, isError, refetch } = useTreasuryProposals()
-
-  if (!userData.isConnected) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="bg-card rounded-lg p-6 text-center">
-          <ExclamationTriangleIcon className="h-12 w-12 text-yellow-500 dark:text-yellow-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-foreground mb-2">
-            Wallet Not Connected
-          </h2>
-          <p className="text-muted-foreground">
-            Please connect your wallet to view privacy features.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  const privateCount = proposals.filter((p) => p.isPrivate).length
-  const publicCount = proposals.length - privateCount
-
   return (
-    <>
+    <PrivacyWalletGate>
       <PageHeader
         title="Privacy"
         subtitle="What's actually private on-chain, and how to use it."
@@ -172,29 +147,7 @@ export default function PrivacyPage() {
           </div>
         </div>
 
-        <div className="bg-card rounded-lg p-6 border border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <ShieldCheckIcon className="h-5 w-5 text-muted-foreground" />
-            Treasury proposal privacy, DAO-wide
-          </h3>
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : isError ? (
-            <LoadError what="treasury proposal privacy counts" onRetry={refetch} />
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{privateCount}</div>
-                <div className="text-sm text-muted-foreground">Private proposals</div>
-                <p className="text-xs text-muted-foreground mt-1">Unvotable until commit/reveal UI ships.</p>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">{publicCount}</div>
-                <div className="text-sm text-muted-foreground">Public proposals</div>
-              </div>
-            </div>
-          )}
-        </div>
+        <PrivacyStats />
 
         <div className="rounded-lg p-6 bg-card border border-border">
           <h3 className="text-sm font-semibold text-foreground">Tracking &amp; next update</h3>
@@ -223,6 +176,6 @@ export default function PrivacyPage() {
           </p>
         </div>
       </div>
-    </>
+    </PrivacyWalletGate>
   )
 }

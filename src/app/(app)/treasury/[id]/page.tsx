@@ -22,6 +22,7 @@ import {
   useTreasuryProposal,
   useTreasuryVoting,
   useProposalDocument,
+  useToken,
 } from '@/hooks/useDAO'
 import { formatToken } from '@/lib/utils'
 import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_AWAITING_FUNDS } from '@/constants'
@@ -32,6 +33,7 @@ export default function TreasuryProposalDetailPage() {
   const proposalId = parseInt(params.id as string, 10)
 
   const { isMember } = useUserData()
+  const token = useToken()
   const { proposal, isLoading, isError, hasVoted, refetch } = useTreasuryProposal(proposalId)
   const { voteOnTreasury, isPending: isVoting } = useTreasuryVoting()
   const { cid: documentCid } = useProposalDocument('Treasury', proposalId)
@@ -131,7 +133,7 @@ export default function TreasuryProposalDetailPage() {
                 <div className="rounded-lg border p-4 bg-muted/40">
                   <p className="text-xs font-medium text-muted-foreground">Requested Amount</p>
                   <p className="text-2xl font-bold text-foreground mt-1">
-                    {formatToken(proposal.amount)}
+                    {token.format(proposal.amount)}
                   </p>
                 </div>
 

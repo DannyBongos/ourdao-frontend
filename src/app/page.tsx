@@ -1,33 +1,23 @@
-'use client'
-
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ConnectButton } from '@/components/ConnectButton'
 import Link from 'next/link'
 import { getContractUrl } from '@/lib/stellar'
 import {
-  Shield,
-  CreditCard,
   Users,
   FileText,
   TrendingUp,
-  ArrowRight,
   Check,
   Globe,
   Zap,
   Lock,
-  BarChart3,
-  Menu,
-  X
 } from 'lucide-react'
-import { useDAOStats, useUserData, useDAOEvents } from '@/hooks/useDAO'
-import { formatToken } from '@/lib/utils'
-import NotificationCenter from '@/components/NotificationCenter'
 import { OrbitMark } from '@/components/OrbitMark'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import { MAIN_CONTENT_ID } from '@/lib/a11y'
-import { useState } from 'react'
+import { LandingHeaderActions } from '@/components/landing/LandingHeaderActions'
+import { LandingHeroCTA } from '@/components/landing/LandingHeroCTA'
+import { LandingStats } from '@/components/landing/LandingStats'
+import { LandingBottomCTA } from '@/components/landing/LandingBottomCTA'
 
 // lucide-react dropped brand/logo icons (including Github) in v1 — inlined here instead.
 function GithubMark(props: React.SVGProps<SVGSVGElement>) {
@@ -38,60 +28,55 @@ function GithubMark(props: React.SVGProps<SVGSVGElement>) {
   )
 }
 
+const features = [
+  {
+    name: 'Privacy-First Lending',
+    description: 'Confidential loans with zero-knowledge proofs and encrypted voting to protect member privacy.',
+    icon: Lock,
+    gradient: 'from-purple-500 to-indigo-500',
+  },
+  {
+    name: 'Automated P2P Loans',
+    description: 'Smart contract-based lending with automatic approval, disbursement, and interest calculation.',
+    icon: Zap,
+    gradient: 'from-emerald-500 to-teal-500',
+  },
+  {
+    name: 'Democratic Governance',
+    description: 'Member-driven decision making with ENS-weighted voting and transparent proposal system.',
+    icon: Users,
+    gradient: 'from-blue-500 to-cyan-500',
+  },
+  {
+    name: 'Document Storage',
+    description: 'Decentralized IPFS storage for loan agreements and KYC documentation with encryption.',
+    icon: FileText,
+    gradient: 'from-orange-500 to-red-500',
+  },
+  {
+    name: 'Yield Generation',
+    description: 'Treasury optimization through staking with automatic yield distribution.',
+    icon: TrendingUp,
+    gradient: 'from-pink-500 to-rose-500',
+  },
+  {
+    name: 'Real-time Updates',
+    description: 'Live notifications and activity feeds keeping you informed of all DAO activities.',
+    icon: Globe,
+    gradient: 'from-violet-500 to-purple-500',
+  },
+]
+
+const benefits = [
+  'Transparent and Decentralized',
+  'Privacy-Preserving Technology',
+  'Automated Smart Contracts',
+  'Community Governance',
+  'Yield-Generating Treasury',
+  'Real-time Notifications',
+]
+
 export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const stats = useDAOStats()
-  const userData = useUserData()
-  useDAOEvents() // Start listening for events
-
-  const features = [
-    {
-      name: 'Privacy-First Lending',
-      description: 'Confidential loans with zero-knowledge proofs and encrypted voting to protect member privacy.',
-      icon: Lock,
-      gradient: 'from-purple-500 to-indigo-500',
-    },
-    {
-      name: 'Automated P2P Loans',
-      description: 'Smart contract-based lending with automatic approval, disbursement, and interest calculation.',
-      icon: Zap,
-      gradient: 'from-emerald-500 to-teal-500',
-    },
-    {
-      name: 'Democratic Governance',
-      description: 'Member-driven decision making with ENS-weighted voting and transparent proposal system.',
-      icon: Users,
-      gradient: 'from-blue-500 to-cyan-500',
-    },
-    {
-      name: 'Document Storage',
-      description: 'Decentralized IPFS storage for loan agreements and KYC documentation with encryption.',
-      icon: FileText,
-      gradient: 'from-orange-500 to-red-500',
-    },
-    {
-      name: 'Yield Generation',
-      description: 'Treasury optimization through staking with automatic yield distribution.',
-      icon: TrendingUp,
-      gradient: 'from-pink-500 to-rose-500',
-    },
-    {
-      name: 'Real-time Updates',
-      description: 'Live notifications and activity feeds keeping you informed of all DAO activities.',
-      icon: Globe,
-      gradient: 'from-violet-500 to-purple-500',
-    },
-  ]
-
-  const benefits = [
-    'Transparent and Decentralized',
-    'Privacy-Preserving Technology',
-    'Automated Smart Contracts',
-    'Community Governance',
-    'Yield-Generating Treasury',
-    'Real-time Notifications'
-  ]
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -121,354 +106,164 @@ export default function Home() {
               </Link>
             </nav>
 
-            <div className="flex items-center space-x-4">
-              {userData.isConnected && userData.isMember && (
-                <>
-                  <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-                    <Link href="/dashboard">
-                      Dashboard
-                    </Link>
-                  </Button>
-                  <NotificationCenter />
-                </>
-              )}
-              <ThemeToggle />
-              <ConnectButton />
-
-              {/* Mobile menu button */}
-              <button
-                className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-                aria-expanded={mobileMenuOpen}
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
+            <LandingHeaderActions />
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border">
-            <div className="space-y-1 px-4 pb-3 pt-2">
-              <Link
-                href="/loans"
-                className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Loans
-              </Link>
-              <Link
-                href="/governance"
-                className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Governance
-              </Link>
-              <Link
-                href="/treasury"
-                className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Treasury
-              </Link>
-              <Link
-                href="/privacy"
-                className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Privacy
-              </Link>
-            </div>
-          </div>
-        )}
       </header>
 
       <main id={MAIN_CONTENT_ID} tabIndex={-1} className="focus:outline-none">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-background dark:via-indigo-950/40 dark:to-background">
-        <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-          <div className="mx-auto max-w-4xl text-center">
-            <div className="mb-8 flex justify-center">
-              <OrbitMark className="h-24 w-24 sm:h-28 sm:w-28" />
-            </div>
+        {/* Hero Section */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-background dark:via-indigo-950/40 dark:to-background">
+          <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+            <div className="mx-auto max-w-4xl text-center">
+              <div className="mb-8 flex justify-center">
+                <OrbitMark className="h-24 w-24 sm:h-28 sm:w-28" />
+              </div>
 
-            <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
-              Next Generation DeFi Lending
-            </Badge>
+              <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
+                Next Generation DeFi Lending
+              </Badge>
 
-            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-              The Future of{' '}
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Decentralized Lending
-              </span>
-            </h1>
+              <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+                The Future of{' '}
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  Decentralized Lending
+                </span>
+              </h1>
 
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-              Join the most advanced peer-to-peer lending DAO with privacy features,
-              automated governance, and yield generation through staking.
-            </p>
-            
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
-              {userData.isConnected ? (
-                userData.isMember ? (
-                  <Button asChild size="lg" className="w-full sm:w-auto px-8 py-3 text-base">
-                    <Link href="/dashboard">
-                      Go to Dashboard
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button asChild size="lg" className="w-full sm:w-auto px-8 py-3 text-base">
-                    <Link href="/register">
-                      Become a Member
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                )
-              ) : (
-                <>
-                  <ConnectButton.Custom>
-                    {({ openConnectModal }) => (
-                      <Button 
-                        onClick={openConnectModal} 
-                        size="lg" 
-                        className="w-full sm:w-auto px-8 py-3 text-base"
-                      >
-                        Connect Wallet
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    )}
-                  </ConnectButton.Custom>
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 py-3 text-base">
-                    Learn More
-                  </Button>
-                </>
-              )}
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+                Join the most advanced peer-to-peer lending DAO with privacy features,
+                automated governance, and yield generation through staking.
+              </p>
+              
+              <LandingHeroCTA />
             </div>
           </div>
-        </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-40 -right-32 h-80 w-80 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-20 blur-3xl" />
-          <div className="absolute -bottom-40 -left-32 h-80 w-80 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 opacity-20 blur-3xl" />
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      {stats.initialized && (
-        <section className="py-16 bg-background border-b border-border">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl mb-3">
-                Our Impact in Numbers
-              </h2>
-              <p className="text-lg text-muted-foreground mx-auto">
-                Driving decentralized finance forward through community-powered lending.
-              </p>
-            </div>
-
-            <dl className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="flex flex-col items-center">
-                <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-950/50">
-                  <Users className="h-8 w-8 text-primary-600 dark:text-primary-400" aria-hidden="true" />
-                </div>
-                <dt className="text-4xl font-bold text-primary-600 dark:text-primary-400">{stats.totalMembers}</dt>
-                <dd className="mt-2 text-base font-medium text-muted-foreground">Total Members</dd>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-green-50 dark:bg-green-950/50">
-                  <Shield className="h-8 w-8 text-green-600 dark:text-green-400" aria-hidden="true" />
-                </div>
-                <dt className="text-4xl font-bold text-green-600 dark:text-green-400">{stats.activeMembers}</dt>
-                <dd className="mt-2 text-base font-medium text-muted-foreground">Active Members</dd>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-950/50">
-                  <BarChart3 className="h-8 w-8 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                </div>
-                <dt className="text-4xl font-bold text-blue-600 dark:text-blue-400">{formatToken(stats.treasuryBalance)}</dt>
-                <dd className="mt-2 text-base font-medium text-muted-foreground">Treasury Balance</dd>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-950/50">
-                  <CreditCard className="h-8 w-8 text-orange-600 dark:text-orange-400" aria-hidden="true" />
-                </div>
-                <dt className="text-4xl font-bold text-orange-600 dark:text-orange-400">{stats.totalLoans}</dt>
-                <dd className="mt-2 text-base font-medium text-muted-foreground">Loans Funded</dd>
-              </div>
-            </dl>
+          
+          {/* Decorative elements */}
+          <div className="absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute -top-40 -right-32 h-80 w-80 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-20 blur-3xl" />
+            <div className="absolute -bottom-40 -left-32 h-80 w-80 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 opacity-20 blur-3xl" />
           </div>
         </section>
-      )}
 
-      {/* About Section */}
-      <section className="py-24 bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <Badge className="mb-6 px-3 py-1" variant="secondary">About OurDAO</Badge>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-6">
-                Redefining Trustless, Private Lending
-              </h2>
-              <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                OurDAO is a privacy-first, decentralized lending protocol built for communities.
-                We combine trustless smart contracts, encrypted document storage, zero-knowledge voting,
-                and real-time transparency to deliver a best-in-class experience for borrowers and lenders.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 mb-10">
-                {benefits.map((item) => (
-                  <div key={item} className="flex items-center space-x-3">
-                    <Check className="h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400" />
-                    <span className="text-base text-foreground">{item}</span>
-                  </div>
-                ))}
+        {/* Stats Section */}
+        <LandingStats />
+
+        {/* About Section */}
+        <section className="py-24 bg-background">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div>
+                <Badge className="mb-6 px-3 py-1" variant="secondary">About OurDAO</Badge>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-6">
+                  Redefining Trustless, Private Lending
+                </h2>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+                  OurDAO is a privacy-first, decentralized lending protocol built for communities.
+                  We combine trustless smart contracts, encrypted document storage, zero-knowledge voting,
+                  and real-time transparency to deliver a best-in-class experience for borrowers and lenders.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 mb-10">
+                  {benefits.map((item) => (
+                    <div key={item} className="flex items-center space-x-3">
+                      <Check className="h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400" />
+                      <span className="text-base text-foreground">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button asChild size="lg" className="w-full sm:w-auto px-6">
+                    <Link href="/register">
+                      Get Started
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className="w-full sm:w-auto px-6">
+                    <Link href="/governance">
+                      Explore Governance
+                    </Link>
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="w-full sm:w-auto px-6">
-                  <Link href="/register">
-                    Get Started
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="w-full sm:w-auto px-6">
-                  <Link href="/governance">
-                    Explore Governance
-                  </Link>
-                </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10 lg:mt-0">
+                {features.slice(0, 4).map((f) => {
+                  const Icon = f.icon
+                  return (
+                    <Card key={f.name} className="border-border hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${f.gradient} mb-4 flex items-center justify-center text-white`}>
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <h4 className="text-lg font-semibold text-foreground mb-2">{f.name}</h4>
+                        <p className="text-sm leading-relaxed text-muted-foreground">{f.description}</p>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10 lg:mt-0">
-              {features.slice(0,4).map((f) => {
-                const Icon = f.icon
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-24 bg-muted">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-3xl text-center mb-16">
+              <Badge variant="secondary" className="mb-3">Our Platform</Badge>
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl mb-6">
+                Advanced Features for Modern DeFi
+              </h2>
+              <p className="text-xl leading-8 text-muted-foreground mx-auto">
+                Built with cutting-edge technology to provide the most comprehensive
+                and secure lending experience in DeFi.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
+              {features.map((feature) => {
+                const Icon = feature.icon
                 return (
-                  <Card key={f.name} className="border-border hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${f.gradient} mb-4 flex items-center justify-center text-white`}>
-                        <Icon className="w-6 h-6" />
+                  <Card key={feature.name} className="border border-border hover:shadow-xl transition-all duration-300 h-full">
+                    <CardHeader className="pb-2">
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${feature.gradient} mb-6 flex items-center justify-center text-white shadow-sm`}>
+                        <Icon className="w-7 h-7" />
                       </div>
-                      <h4 className="text-lg font-semibold text-foreground mb-2">{f.name}</h4>
-                      <p className="text-sm leading-relaxed text-muted-foreground">{f.description}</p>
+                      <CardTitle className="text-xl font-bold mb-2 text-foreground">{feature.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-base text-muted-foreground leading-relaxed">
+                        {feature.description}
+                      </CardDescription>
                     </CardContent>
                   </Card>
                 )
               })}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Section */}
-      <section className="py-24 bg-muted">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-16">
-            <Badge variant="secondary" className="mb-3">Our Platform</Badge>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl mb-6">
-              Advanced Features for Modern DeFi
-            </h2>
-            <p className="text-xl leading-8 text-muted-foreground mx-auto">
-              Built with cutting-edge technology to provide the most comprehensive
-              and secure lending experience in DeFi.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-            {features.map((feature) => {
-              const Icon = feature.icon
-              return (
-                <Card key={feature.name} className="border border-border hover:shadow-xl transition-all duration-300 h-full">
-                  <CardHeader className="pb-2">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-r ${feature.gradient} mb-6 flex items-center justify-center text-white shadow-sm`}>
-                      <Icon className="w-7 h-7" />
-                    </div>
-                    <CardTitle className="text-xl font-bold mb-2 text-foreground">{feature.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      {/* eslint-disable ourdao/no-raw-gray-classes -- Intentional: white buttons on the brand
-          gradient stay white in both themes (no semantic token is theme-stable
-          against the gradient), so bg-white / hover:bg-gray-50 are kept raw. */}
-      <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl mb-6">
-              Ready to Join the Future of Lending?
-            </h2>
-            <p className="mx-auto text-xl leading-8 text-blue-100 mb-10">
-              Connect your wallet and become part of a member-owned lending DAO on Stellar.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {userData.isConnected ? (
-                userData.isMember ? (
-                  <Button asChild size="lg" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-gray-50 px-8 py-3 text-base font-semibold">
-                    <Link href="/dashboard">
-                      Access Dashboard
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button asChild size="lg" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-gray-50 px-8 py-3 text-base font-semibold">
-                    <Link href="/register">
-                      Become a Member
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                )
-              ) : (
-                <>
-                  <ConnectButton.Custom>
-                    {({ openConnectModal }) => (
-                      <Button 
-                        onClick={openConnectModal} 
-                        size="lg" 
-                        className="w-full sm:w-auto bg-white text-blue-600 hover:bg-gray-50 px-8 py-3 text-base font-semibold"
-                      >
-                        Connect Wallet
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    )}
-                  </ConnectButton.Custom>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto bg-transparent border-white/30 text-white hover:bg-white/10 px-8 py-3 text-base font-semibold"
-                  >
-                    Learn More
-                  </Button>
-                </>
-              )}
+        {/* CTA Section */}
+        <section className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl mb-6">
+                Ready to Join the Future of Lending?
+              </h2>
+              <p className="mx-auto text-xl leading-8 text-blue-100 mb-10">
+                Connect your wallet and become part of a member-owned lending DAO on Stellar.
+              </p>
+              
+              <LandingBottomCTA />
             </div>
           </div>
-        </div>
-        
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-            <div className="h-[40rem] w-[40rem] rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-3xl" />
+          
+          {/* Background decoration */}
+          <div className="absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+              <div className="h-[40rem] w-[40rem] rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-3xl" />
+            </div>
           </div>
-        </div>
-      </section>
-      {/* eslint-enable ourdao/no-raw-gray-classes */}
+        </section>
       </main>
 
       {/* Footer */}

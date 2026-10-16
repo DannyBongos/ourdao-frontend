@@ -42,7 +42,11 @@ export function cn(...inputs: ClassValue[]) {
 // cosmetic thousands-separator. See docs/i18n-decision.md.
 export function formatToken(
   value: bigint | string,
-  { decimals = 7, displayDecimals = 4 }: { decimals?: number; displayDecimals?: number } = {}
+  {
+    decimals = 7,
+    displayDecimals = 4,
+    symbol,
+  }: { decimals?: number; displayDecimals?: number; symbol?: string } = {}
 ): string {
   try {
     if (typeof value === 'string') {
@@ -73,10 +77,12 @@ export function formatToken(
 
     if (whole === '0' && !frac && abs > BigInt(0)) {
       const bound = displayDecimals > 0 ? `0.${'0'.repeat(displayDecimals - 1)}1` : '1'
-      return `${neg ? '-' : ''}<${bound}`
+      const formatted = `${neg ? '-' : ''}<${bound}`
+      return symbol ? `${formatted} ${symbol}` : formatted
     }
 
-    return `${neg ? '-' : ''}${whole}${frac ? '.' + frac : ''}`
+    const formatted = `${neg ? '-' : ''}${whole}${frac ? '.' + frac : ''}`
+    return symbol ? `${formatted} ${symbol}` : formatted
   } catch (err) {
     logger.error('formatToken failed', { err, value, decimals, displayDecimals })
     return '—'

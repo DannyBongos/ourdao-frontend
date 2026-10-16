@@ -146,15 +146,16 @@ export function policyToScVal(p: LoanPolicyInput): xdr.ScVal {
 // Core read / invoke
 // ---------------------------------------------------------------------------
 
-/** Simulate a read-only call and decode the return value. Returns null when no
- * contract is configured or the call yields no value. */
-export async function read<T = unknown>(
+/** Simulate a read-only call on an arbitrary contract and decode the return value.
+ * Returns null when no contractId is provided or the call yields no value. */
+export async function readContract<T = unknown>(
+  contractId: string,
   method: string,
   ...args: xdr.ScVal[]
 ): Promise<T | null> {
-  if (!isContractConfigured()) return null
+  if (!contractId) return null
 
-  const contract = new Contract(CONTRACT_ID)
+  const contract = new Contract(contractId)
   // Simulation needs a source account but never touches it on-chain; a throwaway
   // keypair is generated per read even though a fixed placeholder would do.
   const source = new Account(Keypair.random().publicKey(), '0')
@@ -172,6 +173,16 @@ export async function read<T = unknown>(
   }
   const retval = sim.result?.retval
   return retval ? (scValToNative(retval) as T) : null
+}
+
+/** Simulate a read-only call and decode the return value. Returns null when no
+ * contract is configured or the call yields no value. */
+export async function read<T = unknown>(
+  method: string,
+  ...args: xdr.ScVal[]
+): Promise<T | null> {
+  if (!isContractConfigured()) return null
+  return readContract<T>(CONTRACT_ID, method, ...args)
 }
 
 export interface InvokeResult {
@@ -513,6 +524,15 @@ export const daoRead = {
   // "fully voted".
   hasVoted: (kind: 'Loan' | 'Treasury', proposalId: number, voter: string) =>
     read<boolean>('has_voted', sc.proposalKind(kind), sc.u32(proposalId), sc.addr(voter)),
+}
+
+/** Standard SEP-41 token contract reads. */
+export const tokenRead = {
+  getDecimals: (tokenId: string) => readContract<number>(tokenId, 'decimals'),
+  getSymbol: (tokenId: string) => readContract<string>(tokenId, 'symbol'),
+  getName: (tokenId: string) => readContract<string>(tokenId, 'name'),
+  getBalance: (tokenId: string, userAddr: string) =>
+    readContract<bigint>(tokenId, 'balance', sc.addr(userAddr)),
 }
 
 // ---------------------------------------------------------------------------

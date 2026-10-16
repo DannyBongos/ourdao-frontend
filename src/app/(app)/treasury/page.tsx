@@ -31,6 +31,7 @@ import {
   useTreasuryProposals,
   useTreasuryVoting,
   useHasVoted,
+  useToken,
   type UITreasuryProposal,
 } from '@/hooks/useDAO'
 import { LoadError } from '@/components/LoadError'
@@ -53,6 +54,7 @@ function TreasuryProposalRow({
   onVote: (proposalId: number, support: boolean) => Promise<unknown>
 }) {
   const { hasVoted, refetch } = useHasVoted('Treasury', p.id, p.status === 2 && !p.isPrivate)
+  const token = useToken()
 
   return (
     <li className="py-4">
@@ -69,7 +71,7 @@ function TreasuryProposalRow({
             )}
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {formatToken(p.amount)} → {formatStellarAddress(p.recipient)}
+            {token.format(p.amount)} → {formatStellarAddress(p.recipient)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             For {p.votesFor} · Against {p.votesAgainst}
@@ -133,26 +135,28 @@ function TreasuryProposalRow({
 export default function TreasuryPage() {
   const userData = useUserData()
   const stats = useDAOStats()
+  const token = useToken()
   const myStake = useStake()
   const { stake, unstake, isPending: staking } = useStaking()
   const { proposals, isLoading, hasMore, loadMore, isLoadingMore, hasErrors, isError, refetch } = useTreasuryProposals()
   const proposalFilters = useProposalFilters(proposals)
 
+  const [amount, setAmount] = useState('')
+
   // Voting weight calculation (Issue #405)
   const enteredAmountStroops = (() => {
     try {
-      const p = parseToken(amount)
+      const p = parseToken(amount, token.decimals)
       return p > BigInt(0) ? p : BigInt(0)
     } catch {
       return BigInt(0)
     }
   })()
-  const currentWeight = calculateVotingWeight(myStake)
-  const projectedWeight = calculateVotingWeight(myStake + enteredAmountStroops)
+  const hasInsufficientStakeBalance = enteredAmountStroops > token.balance
+  const currentWeight = calculateVotingWeight(myStake, token.decimals)
+  const projectedWeight = calculateVotingWeight(myStake + enteredAmountStroops, token.decimals)
   useAnnounceLoad('Treasury proposals', isLoading, isError)
   const { voteOnTreasury, isPending: voting } = useTreasuryVoting()
-
-  const [amount, setAmount] = useState('')
 
   if (!userData.isConnected) {
     return (
@@ -173,10 +177,11 @@ export default function TreasuryPage() {
   }
 
   const handleStake = async () => {
-    const base = parseToken(amount)
-    if (base <= BigInt(0)) return
+    const base = parseToken(amount, token.decimals)
+    if (base <= BigInt(0) || base > token.balance) return
     try {
       await stake(base)
+      token.refetch()
       setAmount('')
     } catch {
       /* toast handled in hook */
@@ -184,10 +189,11 @@ export default function TreasuryPage() {
   }
 
   const handleUnstake = async () => {
-    const base = parseToken(amount)
+    const base = parseToken(amount, token.decimals)
     if (base <= BigInt(0)) return
     try {
       await unstake(base)
+      token.refetch()
       setAmount('')
     } catch {
       /* toast handled in hook */
@@ -206,25 +212,25 @@ export default function TreasuryPage() {
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Treasury Balance"
-          value={formatToken(stats.treasuryBalance)}
+          value={token.format(stats.treasuryBalance)}
           icon={Landmark}
           tint="bg-primary-50 text-primary-600 dark:bg-primary-950/50 dark:text-primary-400"
         />
         <StatCard
           label="Total Staked"
-          value={formatToken(stats.totalRestaked)}
+          value={token.format(stats.totalRestaked)}
           icon={Lock}
           tint="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
         />
         <StatCard
           label="Your Stake"
-          value={formatToken(myStake)}
+          value={token.format(myStake)}
           icon={TrendingUp}
           tint="bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
         />
         <StatCard
           label="Pending Yield"
-          value={formatToken(userData.pendingYield)}
+          value={token.format(userData.pendingYield)}
           icon={Gift}
           tint="bg-fuchsia-50 text-fuchsia-600 dark:bg-fuchsia-950/50 dark:text-fuchsia-400"
         />
@@ -234,25 +240,25 @@ export default function TreasuryPage() {
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Interest Collected"
-          value={formatToken(asBigInt(stats.interestCollected))}
+          value={token.format(asBigInt(stats.interestCollected))}
           icon={Gift}
           tint="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
         />
         <StatCard
           label="Principal Lent"
-          value={formatToken(asBigInt(stats.principalLent))}
+          value={token.format(asBigInt(stats.principalLent))}
           icon={Banknote}
           tint="bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400"
         />
         <StatCard
           label="Principal Repaid"
-          value={formatToken(asBigInt(stats.principalRepaid))}
+          value={token.format(asBigInt(stats.principalRepaid))}
           icon={TrendingUp}
           tint="bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400"
         />
         <StatCard
           label="Value Defaulted"
-          value={formatToken(asBigInt(stats.valueDefaulted))}
+          value={token.format(asBigInt(stats.valueDefaulted))}
           icon={TriangleAlert}
           tint="bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
         />
@@ -273,9 +279,14 @@ export default function TreasuryPage() {
               separately from the treasury and can be withdrawn at any time.
             </p>
             <div>
-              <label htmlFor="stake-amount" className="mb-1 block text-sm font-medium text-foreground">
-                Amount
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="stake-amount" className="block text-sm font-medium text-foreground">
+                  Amount ({token.symbol})
+                </label>
+                <span className="text-xs text-muted-foreground">
+                  Balance: {token.format(token.balance)}
+                </span>
+              </div>
               <input
                 id="stake-amount"
                 type="number"
@@ -288,6 +299,11 @@ export default function TreasuryPage() {
                 disabled={!userData.isMember || staking}
                 className="w-full rounded-lg border border-input px-3 py-2.5 text-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:bg-muted"
               />
+              {hasInsufficientStakeBalance && (
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                  Insufficient {token.symbol} balance ({token.format(token.balance)}).
+                </p>
+              )}
             </div>
 
             {/* Voting Weight Preview (Issue #405) */}
@@ -311,11 +327,11 @@ export default function TreasuryPage() {
             <div className="flex gap-2">
               <Button
                 onClick={handleStake}
-                disabled={!userData.isMember || staking || !amount}
+                disabled={!userData.isMember || staking || !amount || hasInsufficientStakeBalance}
                 className="flex-1"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                Stake
+                {hasInsufficientStakeBalance ? 'Insufficient Balance' : 'Stake'}
               </Button>
               <Button
                 variant="outline"

@@ -41,6 +41,9 @@ export const queryKeys = {
   treasuryTimeline: (id: number) => ['treasuryTimeline', id] as const,
   memberSummary: (address: Address) => ['memberSummary', address] as const,
   memberActivity: (address: Address, limit: number) => ['memberActivity', address, limit] as const,
+  daoToken: () => ['daoToken'] as const,
+  tokenMetadata: (tokenId: string) => ['tokenMetadata', tokenId] as const,
+  tokenBalance: (tokenId: string, address: Address) => ['tokenBalance', tokenId, address] as const,
 }
 
 export const allWalletScopedQueryKeys = (): QueryKey[] => [
@@ -50,4 +53,5 @@ export const allWalletScopedQueryKeys = (): QueryKey[] => [
   ['stake'],
   ['document'],
   ['notifications'],
+  ['tokenBalance'],
 ]

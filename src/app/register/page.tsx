@@ -12,7 +12,7 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon,
 } from '@/lib/icons'
-import { useDAOStats, useUserData, useMemberRegistration } from '@/hooks/useDAO'
+import { useDAOStats, useUserData, useMemberRegistration, useToken } from '@/hooks/useDAO'
 import { useRedirectIfMember } from '@/hooks/useRequireMember'
 import { formatToken } from '@/lib/utils'
 import { CardSkeleton } from '@/components/ui/skeleton'
@@ -23,7 +23,11 @@ export default function RegisterPage() {
   const router = useRouter()
   const stats = useDAOStats()
   const userData = useUserData()
+  const token = useToken()
   const { registerMember, isPending, error, isSuccess } = useMemberRegistration()
+
+  const membershipFee = BigInt(stats.membershipFee || 0)
+  const hasSufficientBalance = token.balance >= membershipFee
   
   const [formData, setFormData] = useState({
     acceptTerms: false,
@@ -113,13 +117,26 @@ export default function RegisterPage() {
               </ul>
             </div>
 
-            <div className="bg-muted rounded-lg p-4">
+            <div className="bg-muted rounded-lg p-4 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-foreground">Membership Fee:</span>
                 <span className="text-xl font-bold text-foreground">
-                  {formatToken(stats.membershipFee)}
+                  {token.format(stats.membershipFee)}
                 </span>
               </div>
+              {userData.isConnected && (
+                <div className="flex justify-between items-center text-sm border-t border-border pt-2">
+                  <span className="text-muted-foreground">Your {token.symbol} Balance:</span>
+                  <span className={`font-medium ${hasSufficientBalance ? 'text-foreground' : 'text-red-500 dark:text-red-400'}`}>
+                    {token.format(token.balance)}
+                  </span>
+                </div>
+              )}
+              {userData.isConnected && !hasSufficientBalance && (
+                <p className="text-xs text-red-500 dark:text-red-400">
+                  Insufficient {token.symbol} balance to cover the membership fee.
+                </p>
+              )}
             </div>
           </div>
         )
@@ -144,10 +161,23 @@ export default function RegisterPage() {
                   <span className="font-mono">{userData.address}</span>
                 </div>
 
-                <div className="flex justify-between border-t pt-2">
+                <div className="flex justify-between border-t border-border pt-2">
                   <span className="font-medium text-foreground">Membership Fee:</span>
-                  <span className="font-bold">{formatToken(stats.membershipFee)}</span>
+                  <span className="font-bold">{token.format(stats.membershipFee)}</span>
                 </div>
+
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Your Balance:</span>
+                  <span className={`font-medium ${hasSufficientBalance ? 'text-foreground' : 'text-red-500 dark:text-red-400'}`}>
+                    {token.format(token.balance)}
+                  </span>
+                </div>
+
+                {!hasSufficientBalance && (
+                  <p className="text-xs text-red-500 dark:text-red-400 pt-1">
+                    Insufficient balance to complete registration.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -279,6 +309,7 @@ export default function RegisterPage() {
                   <Button
                     type="button"
                     onClick={() => setStep(Math.min(maxSteps, step + 1))}
+                    disabled={userData.isConnected && !hasSufficientBalance}
                   >
                     Next
                   </Button>
@@ -286,10 +317,10 @@ export default function RegisterPage() {
                   <Button
                     type="submit"
                     loading={isPending}
-                    disabled={!formData.acceptTerms || !userData.isConnected}
+                    disabled={!formData.acceptTerms || !userData.isConnected || !hasSufficientBalance}
                     className="min-w-[120px]"
                   >
-                    {isPending ? 'Registering...' : 'Register Now'}
+                    {!hasSufficientBalance ? 'Insufficient Balance' : isPending ? 'Registering...' : 'Register Now'}
                   </Button>
                 )}
               </div>
